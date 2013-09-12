@@ -41,10 +41,6 @@ ENVI_OPEN_FILE,img_file,r_fid=fid
       print, 'Error when opening file ',img_file
       return
   endif 
-  
-;raster = e.OpenRaster(fid) 
-;metadata = raster.METADATA
-;PRINT, metadata
 
 ;read the image
 ENVI_FILE_QUERY, fid, dims=dims, NB=NB, NL=NL, NS=NS
@@ -52,6 +48,22 @@ ENVI_FILE_QUERY, fid, dims=dims, NB=NB, NL=NL, NS=NS
 map_info=envi_get_map_info(fid=fid)
 
 imagen=fltarr(NS, NL, size(bands,/N_ELEMENTS))
+
+; to include in the description file
+date = ''
+time = ''
+azim = ''
+elev = ''
+spawn, 'cat '+filepath+file_name+'/'+file_name+'_MTL.txt|grep "DATE_ACQUIRED" ',date
+spawn, 'cat '+filepath+file_name+'/'+file_name+'_MTL.txt|grep "SCENE_CENTER_TIME" ',time
+spawn, 'cat '+filepath+file_name+'/'+file_name+'_MTL.txt|grep "SUN_AZIMUTH" ',azim
+spawn, 'cat '+filepath+file_name+'/'+file_name+'_MTL.txt|grep "SUN_ELEVATION" ',elev
+
+
+
+
+
+
 
 FOR i=0, size(bands,/N_ELEMENTS)-1 DO BEGIN
 
@@ -87,11 +99,12 @@ FOR i=0, size(bands,/N_ELEMENTS)-1 DO BEGIN
 ENDFOR
 ;
 ENVI_WRITE_ENVI_FILE, imagen, data_type=4, $
-    descrip = 'L8 calibrated bands', $
+    descrip = 'L8 calibrated bands. '+date+'. '+time+'. '+azim+'. '+elev+'.', $
     map_info = map_info, $
     WAVELENGTH_UNITS = 0L, $
     WL = [wl1, wl2, wl3, wl4, wl5, wl6, wl7], $
-    OUT_NAME = strout
+    OUT_NAME = strout, $
+    DEF_BANDS = [3, 2, 1]
 
 
 PRINT, "Finished..."
