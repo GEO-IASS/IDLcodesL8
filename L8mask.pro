@@ -22,41 +22,61 @@ Pro L8mask
   B4Path = FILEPATH(filename+'_B4.TIF',$
     ROOT_DIR = dirpath)
     
+ 
 ;----------------------------------------------------------------------------------------------    
-;  e = ENVI()
-;  ;ENVI procedures
+    
+;  ok = QUERY_IMAGE(BQAPath,info)
+;  HELP, info,/STRUCTURE
+  
+;  data_variable = READ_TIFF(B2Path,GEOTIFF=GeoKeys)
+  ok = QUERY_TIFF(B2Path,GEOTIFF=GeoKeys)
+;  HELP, GeoKeys,/STRUCTURE 
+;  PRINT, info.POSITION
+;  PRINT, info.RESOLUTION
+
+  
+  
+;----------------------------------------------------------------------------------------------
+e = ENVI(/HEADLESS)
+;ENVI procedures
+
+raster0 = e.OpenRaster(BQAPath)
+imBQA = raster0.GetData()
+
+dims = [raster0.NCOLUMNS,raster0.NROWS]
+im=fltarr(dims[0], dims[1],3)
+imRGB=fltarr(dims[0], dims[1],3)
+
+raster0 = e.OpenRaster(B2Path)
+im[*,*,2] = raster0.GetData()
+
+raster1 = e.OpenRaster(B3Path)
+im[*,*,1] = raster1.GetData()
+
+raster2 = e.OpenRaster(B4Path)
+im[*,*,0] = raster2.GetData()
+
+
+;fid = ENVIRasterToFID(raster0)
+;map_info=ENVI_GET_MAP_INFO(fid=fid)
+
+;PRINT, map_info
+;
+;PRINT, GeoKeys
+;
+;PRINT, raster0.METADATA
+
+
+
+
+
+
+;----------------------------------------------------------------------------------------------
+
 ;  
-;  raster1 = e.OpenRaster(BQAPath)
-; 
-  
-  
-  
- ;---------------------------------------------------------------------------------------------- 
-    
-    
-    
-  ok = QUERY_IMAGE(BQAPath,info)
-  HELP, info,/STRUCTURE
-  
-  data_variable = READ_TIFF(B2Path,GEOTIFF=GeoKeys)
-  HELP, GeoKeys,/STRUCTURE 
-  PRINT, info.POSITION
-  PRINT, info.RESOLUTION
-  
-  dims = [info.dimensions[0],info.dimensions[1]]
-  im=fltarr(dims[0], dims[1],3)
-  imRGB=fltarr(dims[0], dims[1],3)
-  
-  imBQA = READ_BINARY(BQAPath, DATA_DIMS=dims, DATA_TYPE=datatype)
-  
-  
-  
-  
-  
-  
-  im[*,*,2] = READ_BINARY(B2Path, DATA_DIMS=dims, DATA_TYPE=datatype)
-  im[*,*,1] = READ_BINARY(B3Path, DATA_DIMS=dims, DATA_TYPE=datatype)
-  im[*,*,0] = READ_BINARY(B4Path, DATA_DIMS=dims, DATA_TYPE=datatype)
+;  im[*,*,2] = READ_BINARY(B2Path, DATA_DIMS=dims, DATA_TYPE=datatype)
+;  im[*,*,1] = READ_BINARY(B3Path, DATA_DIMS=dims, DATA_TYPE=datatype)
+;  im[*,*,0] = READ_BINARY(B4Path, DATA_DIMS=dims, DATA_TYPE=datatype)
   
 ;  xwidth = 1024
 ;  ywidth = 1024
@@ -69,7 +89,10 @@ Pro L8mask
   x1 = dims[0]-1
   y0 = 0
   y1 = dims[1]-1
-;  
+;  x0 = 300
+;  x1 = 500
+;  y0 = 600
+;  y1 = 800
   
   
   imRGB[*,*,2] = HIST_EQUAL(im[*,*,2])
