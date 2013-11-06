@@ -4,9 +4,28 @@ Pro L8mask
   filename = 'LC80170302013269LGN00'
   dirpath = '/Users/javier/Desktop/Javier/PHD_RIT/LDCM/L8images/'+filename+'/'
   
+  ;  xwidth = 1024
+;  ywidth = 1024
+;  x0 = (dims[0]-1)/2-xwidth
+;  x1 = (dims[0]-1)/2+xwidth-1
+;  y0 = (dims[1]-1)/2-ywidth
+;  y1 = (dims[1]-1)/2+ywidth-1
+  
+;  x0 = 0
+;  x1 = dims[0]-1
+;  y0 = 0
+;  y1 = dims[1]-1
+  
+  x0 = 6100
+  x1 = 6800
+  y0 = 3200
+  y1 = 3600
+  
+  SubRectIdx = [x0, y0, x1, y1]
   
   ;Image Result
   datatype = 12; UINT
+  
   ;Opening bands
   ;BQA Band -------------------------------
   BQAPath = FILEPATH(filename+'_BQA.TIF',$
@@ -20,6 +39,12 @@ Pro L8mask
     ROOT_DIR = dirpath)  
   ;B4 Band --------------------------------
   B4Path = FILEPATH(filename+'_B4.TIF',$
+    ROOT_DIR = dirpath)
+  ;B5 Band --------------------------------
+  B5Path = FILEPATH(filename+'_B5.TIF',$
+    ROOT_DIR = dirpath)
+  ;B9 Band --------------------------------
+  B9Path = FILEPATH(filename+'_B9.TIF',$
     ROOT_DIR = dirpath)
     
  
@@ -41,95 +66,68 @@ e = ENVI(/HEADLESS)
 ;ENVI procedures
 
 raster0 = e.OpenRaster(BQAPath)
-imBQA = raster0.GetData()
+imBQA = raster0.GetData(SUB_RECT=SubRectIdx)
 
-dims = [raster0.NCOLUMNS,raster0.NROWS]
-im=fltarr(dims[0], dims[1],3)
-imRGB=fltarr(dims[0], dims[1],3)
+dims = SIZE(imBQA,/DIMENSIONS)
+
+im = fltarr(dims[0], dims[1],3)
+imRGB = fltarr(dims[0], dims[1],3)
 
 raster0 = e.OpenRaster(B2Path)
-im[*,*,2] = raster0.GetData()
+im[*,*,2] = raster0.GetData(SUB_RECT=SubRectIdx)
 
 raster1 = e.OpenRaster(B3Path)
-im[*,*,1] = raster1.GetData()
+im[*,*,1] = raster1.GetData(SUB_RECT=SubRectIdx)
 
 raster2 = e.OpenRaster(B4Path)
-im[*,*,0] = raster2.GetData()
+im[*,*,0] = raster2.GetData(SUB_RECT=SubRectIdx)
+
+raster3 = e.OpenRaster(B9Path)
+imCirrus = raster3.GetData(SUB_RECT=SubRectIdx)
+
+raster4 = e.OpenRaster(B5Path)
+imNIR = raster4.GetData(SUB_RECT=SubRectIdx)
 
 
 ;fid = ENVIRasterToFID(raster0)
 ;map_info=ENVI_GET_MAP_INFO(fid=fid)
 
-;PRINT, map_info
-;
-;PRINT, GeoKeys
-;
-;PRINT, raster0.METADATA
-
-
-
-
-
 
 ;----------------------------------------------------------------------------------------------
+; Display RGB, NIR and Cirrus bands
 
-;  
-;  im[*,*,2] = READ_BINARY(B2Path, DATA_DIMS=dims, DATA_TYPE=datatype)
-;  im[*,*,1] = READ_BINARY(B3Path, DATA_DIMS=dims, DATA_TYPE=datatype)
-;  im[*,*,0] = READ_BINARY(B4Path, DATA_DIMS=dims, DATA_TYPE=datatype)
-  
-;  xwidth = 1024
-;  ywidth = 1024
-;  x0 = (dims[0]-1)/2-xwidth
-;  x1 = (dims[0]-1)/2+xwidth-1
-;  y0 = (dims[1]-1)/2-ywidth
-;  y1 = (dims[1]-1)/2+ywidth-1
-  
-  x0 = 0
-  x1 = dims[0]-1
-  y0 = 0
-  y1 = dims[1]-1
-;  x0 = 300
-;  x1 = 500
-;  y0 = 600
-;  y1 = 800
-  
-  
   imRGB[*,*,2] = HIST_EQUAL(im[*,*,2])
   imRGB[*,*,1] = HIST_EQUAL(im[*,*,1])
   imRGB[*,*,0] = HIST_EQUAL(im[*,*,0])
   
-  imTest = imRGB[x0:x1,y0:y1,*]
+;  imTest = imRGB[x0:x1,y0:y1,*]
+;  imCirrusTest = imCirrus[x0:x1,y0:y1]
+;  imNIRTest = imNIR[x0:x1,y0:y1]
   
- result =  IMAGE(imTest,/ORDER,MIN_VALUE=MIN(imTest),MAX_VALUE=MAX(imTest), $
-            TITLE='RGB',GEOTIFF=GeoKeys)
-             
+  result =  IMAGE(imRGB,/ORDER,MIN_VALUE=MIN(imRGB),MAX_VALUE=MAX(imRGB), $
+            TITLE='RGB',GEOTIFF=GeoKeys,LAYOUT=[1,3,1])
+  result =  IMAGE(imCirrus,/ORDER,MIN_VALUE=MIN(imCirrus),MAX_VALUE=MAX(imCirrus), $
+            TITLE='Cirrus',GEOTIFF=GeoKeys,LAYOUT=[1,3,2],/CURRENT)
+  result =  IMAGE(imNIR,/ORDER,MIN_VALUE=MIN(imNIR),MAX_VALUE=MAX(imNIR), $
+            TITLE='NIR',GEOTIFF=GeoKeys,LAYOUT=[1,3,3],/CURRENT)           
   
-  imBQATest = imBQA[x0:x1,y0:y1]
+;  imBQATest = imBQA[x0:x1,y0:y1]
 ;  result =  IMAGE(imBQATest,/ORDER,MIN_VALUE=MIN(imBQATest),MAX_VALUE=MAX(imBQATest), $
 ;              LAYOUT=[2,2,2],/CURRENT,TITLE='BQA Band')
-                          
+;----------------------------------------------------------------------------------------------
+; Create Mask                          
 ; Cloud Mask                        
-  CloudMask = imBQATest AND 49152;two most significant bits 1100000000000000
+  CloudMask = imBQA AND 49152;two most significant bits 1100000000000000
   CloudMask = ISHFT(CloudMask,-14)
   
-;  result =  IMAGE(CloudMask,/ORDER,MIN_VALUE=MIN(CloudMask),MAX_VALUE=MAX(CloudMask), $
-;    LAYOUT=[2,2,3],/CURRENT,TITLE='Cloud Mask')
-;  ; Cirrus Mask
-  CirrusMask = imBQATest AND 12288;two most significant bits 0011000000000000
+; Cirrus Mask
+  CirrusMask = imBQA AND 12288;two most significant bits 0011000000000000
   CirrusMask = ISHFT(CirrusMask,-12)
-;  result =  IMAGE(CirrusMask,/ORDER,MIN_VALUE=MIN(CirrusMask),MAX_VALUE=MAX(CirrusMask), $
-;    LAYOUT=[2,2,4],/CURRENT,TITLE='Cirrus Mask')
-    
-  ; Water Mask
-  
-  WaterMask = imBQATest AND 48; 0000000000110000
+
+; Water Mask
+  WaterMask = imBQA AND 48; 0000000000110000
   WaterMask = ISHFT(WaterMask,-4)
-  
-;  result =  IMAGE(WaterMask,/ORDER,MIN_VALUE=MIN(WaterMask),MAX_VALUE=MAX(WaterMask), $
-;    LAYOUT=[2,2,4],/CURRENT,TITLE='Water Mask') 
-    
-    
+
 
 ;----------------------------------------------------------------------------------------------    
 ; Cloud Mask Histogram
@@ -140,7 +138,8 @@ im[*,*,0] = raster2.GetData()
   
   hist = PLOT(orig_histogram, LAYOUT=[2,3,2], /CURRENT, $
     COLOR='red', $
-    XTITLE='Pixel Value', YTITLE='Frequency', TITLE='Histogram')
+    XTITLE='Pixel Value', YTITLE='Frequency', TITLE='Histogram', $
+    AXIS_STYLE = YLOG)
 
 ; Cirrus Mask Histogram
   result =  IMAGE(CirrusMask,/ORDER,MIN_VALUE=MIN(CirrusMask),MAX_VALUE=MAX(CirrusMask), $
