@@ -100,9 +100,9 @@ imNIR = raster4.GetData(SUB_RECT=SubRectIdx)
   imRGB[*,*,1] = HIST_EQUAL(im[*,*,1])
   imRGB[*,*,0] = HIST_EQUAL(im[*,*,0])
   
-;  imTest = imRGB[x0:x1,y0:y1,*]
-;  imCirrusTest = imCirrus[x0:x1,y0:y1]
-;  imNIRTest = imNIR[x0:x1,y0:y1]
+  PRINT, TYPENAME(imRGB) 
+  PRINT, MIN(imRGB)
+  PRINT, MAX(imRGB)
   
   result =  IMAGE(imRGB,/ORDER,MIN_VALUE=MIN(imRGB),MAX_VALUE=MAX(imRGB), $
             TITLE='RGB',GEOTIFF=GeoKeys,LAYOUT=[1,3,1])

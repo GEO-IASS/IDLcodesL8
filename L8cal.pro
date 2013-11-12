@@ -36,6 +36,9 @@ strMTL = filepath+file_name+'/'+file_name+'_MTL.txt
 PRINT, "Starting Radiometric Calibration for L8 image..."
 
 ;ENVI procedures
+
+e = ENVI(/HEADLESS)
+
 ENVI_OPEN_FILE,img_file,r_fid=fid
   if (fid eq -1) then begin
       print, 'Error when opening file ',img_file
