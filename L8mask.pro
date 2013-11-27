@@ -1,7 +1,7 @@
 Pro L8mask
-;  filename = 'LC80160302013262LGN00'
+  filename = 'LC80160302013262LGN00'
   
-  filename = 'LC80170302013269LGN00'
+;  filename = 'LC80170302013269LGN00'
   dirpath = '/Users/javier/Desktop/Javier/PHD_RIT/LDCM/L8images/'+filename+'/'
   
   ;  xwidth = 1024
