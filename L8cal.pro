@@ -26,7 +26,7 @@ read, file_name, PROMPT = 'Enter File Name: '
 bands = [1, 2, 3, 4, 5, 6, 7]    
 
 ;Create Strings
-filepath = '/Users/javier/Desktop/Javier/PHD_RIT/LDCM/LDCMimages/'
+filepath = '/Users/javier/Desktop/Javier/PHD_RIT/LDCM/L8images/'
 img_file=filepath+file_name+'/'+file_name+'_B1.TIF'
 strleft =filepath+file_name+'/'+file_name+'_B'
 strright ='.TIF'
