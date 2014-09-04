@@ -1,5 +1,5 @@
 Pro L8mask
-  filename = 'LC80160302013262LGN00'
+  filename = 'LC80160302014137LGN00'
   
 ;  filename = 'LC80170302013269LGN00'
   dirpath = '/Users/javier/Desktop/Javier/PHD_RIT/LDCM/L8images/'+filename+'/'
@@ -10,21 +10,6 @@ Pro L8mask
 ;  x1 = (dims[0]-1)/2+xwidth-1
 ;  y0 = (dims[1]-1)/2-ywidth
 ;  y1 = (dims[1]-1)/2+ywidth-1
-  
-;  x0 = 0
-;  x1 = dims[0]-1
-;  y0 = 0
-;  y1 = dims[1]-1
-  
-  x0 = 6100
-  x1 = 6800
-  y0 = 3200
-  y1 = 3600
-  
-  SubRectIdx = [x0, y0, x1, y1]
-  
-  ;Image Result
-  datatype = 12; UINT
   
   ;Opening bands
   ;BQA Band -------------------------------
@@ -50,11 +35,25 @@ Pro L8mask
  
 ;----------------------------------------------------------------------------------------------    
     
-;  ok = QUERY_IMAGE(BQAPath,info)
+  ok = QUERY_IMAGE(BQAPath,info)
 ;  HELP, info,/STRUCTURE
+;  print, info.DIMENSIONS[0]
+;  print, info.DIMENSIONS[1]
+  
+  x0 = 0
+  x1 = info.DIMENSIONS[0]-1
+  y0 = 0
+  y1 = info.DIMENSIONS[1]-1
+  
+  print,x0,x1,y0,y1
+  
+  SubRectIdx = [x0, y0, x1, y1]
+  
+  ;Image Result
+  datatype = 12; UINT
   
 ;  data_variable = READ_TIFF(B2Path,GEOTIFF=GeoKeys)
-  ok = QUERY_TIFF(B2Path,GEOTIFF=GeoKeys)
+;  ok = QUERY_TIFF(B2Path,GEOTIFF=GeoKeys)
 ;  HELP, GeoKeys,/STRUCTURE 
 ;  PRINT, info.POSITION
 ;  PRINT, info.RESOLUTION
@@ -69,6 +68,8 @@ raster0 = e.OpenRaster(BQAPath)
 imBQA = raster0.GetData(SUB_RECT=SubRectIdx)
 
 dims = SIZE(imBQA,/DIMENSIONS)
+
+print, dims
 
 im = fltarr(dims[0], dims[1],3)
 imRGB = fltarr(dims[0], dims[1],3)
